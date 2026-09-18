@@ -1,0 +1,83 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+
+model User {
+  id            String         @id @default(uuid())
+  name          String
+  email         String         @unique
+  password      String
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+  
+  subscriptions Subscription[]
+
+  @@map("users")
+}
+
+// Enums for better type safety and database constraints
+enum Currency {
+  USD
+  EUR
+  GBP
+}
+
+enum Frequency {
+  daily
+  weekly
+  monthly
+  yearly
+}
+
+enum Category {
+  sports
+  news
+  entertainment
+  lifestyle
+  technology
+  finance
+  politics
+  other
+}
+
+enum Status {
+  active
+  cancelled
+  expired
+}
+
+model Subscription {
+  id            String   @id @default(cuid())
+  name          String   @db.VarChar(100)
+  price         Decimal    @db.Decimal(10, 2)
+  currency      Currency @default(USD)
+  frequency     Frequency
+  category      Category
+  paymentMethod String   @db.VarChar(255)
+  status        Status   @default(active)
+  startDate     DateTime
+  renewalDate   DateTime?
+  userId        String   @map("user_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  user          User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, name]) // Prevent duplicate subscription names per user
+  @@index([userId])
+  @@index([status])
+  @@index([renewalDate])
+  @@map("subscriptions")
+}
