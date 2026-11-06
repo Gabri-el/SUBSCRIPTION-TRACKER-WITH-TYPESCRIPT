@@ -6,18 +6,28 @@ import createSubscriptionSchema from "../schema_validator/subscription.schema";
 
 const showAllSubscription = async (req:Request ,res:Response,  next :NextFunction)=>{
     try{
-        const allSubscription = await prisma.subscription.findMany();
+        const page = Math.max (parseInt(req.query.page as string),1) || 1;
+        const limit = Math.min(Math.max (parseInt(req.query.limit as string),1),100) || 2;
+        const skip = (page - 1) * limit;
+        const [allSubscription,totalCount] = await Promise.all([
+            prisma.subscription.findMany({
+                skip: skip,
+                take: limit,
+                orderBy:{id:"asc"}
+            }),
+            prisma.subscription.count()
+        ]);
 
         if(!allSubscription){
             return res.status(201).json({success:false, message:"no subscription found"});
         }
 
-        res.status(200).json({success:true, message:"all subscription", data:allSubscription});
+        res.status(200).json({success:true, message:"all subscription", data:allSubscription, totalCount: totalCount, currentPage: page, totalPages: Math.ceil(totalCount / limit)});
 
     }catch(error){
         const errorMessage = error as Error;
         console.log("show all subscription error", errorMessage.message);
-        res.status(500).json({success:false, message:"Internal Serve Error"})
+        res.status(500).json({success:false, message:errorMessage.message})
     }
 
 }
@@ -39,7 +49,7 @@ const subscriptionById = async ( req:Request,res: Response, next: NextFunction) 
     }catch(error){
             const errorMessage = error as Error;
         console.log("show all subscription by id error", errorMessage.message);
-        res.status(500).json({success:false, message:"Internal Serve Error"})
+        res.status(500).json({success:false, message:errorMessage.message})
     }
     
 }
@@ -68,7 +78,7 @@ const createSubscription = async ( req:Request,res:Response, next:NextFunction)=
     }catch(error){
                  const errorMessage = error as Error;
         console.log("create subscription  error", errorMessage.message);
-        res.status(500).json({success:false, message:"Internal Serve Error"})
+        res.status(500).json({success:false, message:errorMessage.message})
 
     }
     

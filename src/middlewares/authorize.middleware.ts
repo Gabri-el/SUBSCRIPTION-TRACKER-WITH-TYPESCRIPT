@@ -32,7 +32,7 @@ const authorize = async(req:Request,res:Response,next:NextFunction)=>{
         const errorMessage = error as Error;
         console.error("Jwt authentication error",errorMessage.message);
 
-        res.status(401).json({success:false, message:"unauthorize user"});
+        res.status(401).json({success:false, message:errorMessage.message});
     }
 
 }

@@ -54,7 +54,7 @@ const signUp = async(req:Request,res:Response,)=>{
         const errorMessage = error as Error;
         console.log("sign up", errorMessage.message);
 
-        res.status(500).json({success:false,message:"Internal Server Error"})
+        res.status(500).json({success:false,message:errorMessage.message})
     }
 
 }
@@ -96,7 +96,7 @@ const signIn = async( req:Request,res:Response)=>{
         const errorMessage = error as Error;
         console.error("sign in error",errorMessage.message);
 
-        res.status(500).json({success:false,message:'Internal Server Error'})
+        res.status(500).json({success:false,message:errorMessage.message})
 
     }
 }

@@ -32,6 +32,7 @@ enum Currency {
   USD
   EUR
   GBP
+  GHC
 }
 
 enum Frequency {

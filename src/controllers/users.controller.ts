@@ -4,13 +4,31 @@ import { date, success } from "zod";
 
 const getAllUsers = async (req:Request ,res:Response,  next:NextFunction)=>{
     try{
+        const page = Math.max (parseInt(req.query.page as string),1) || 1;
+        const limit = Math.min(Math.max (parseInt(req.query.limit as string),1),100) || 2;
+        const skip = (page - 1) * limit;
 
-        const users = await prisma.user.findMany({omit:{password:true ,}});
-        if(!users){
-            return res.status(404).json({success:false,message:"no users"});
-        }
+        const [users,totalCount] = await Promise.all([
+            prisma.user.findMany({
+                omit: { password: true },
+                skip: skip,
+                take: limit,
+                orderBy:{id:"asc"}
+            }),
+            prisma.user.count()
+        ]);
 
-        res.status(200).json({success:true,message:"all users", data:users})
+        // if(!users){
+        //     return res.status(404).json({success:false,message:"no users"});
+        // }
+
+        res.status(200).json({
+            success:true,
+            message:users.length === 0 ? "no users found" : "all users",
+            data:users, 
+            totalCount: totalCount, 
+            currentPage: page, 
+            totalPages: Math.ceil(totalCount / limit)});
 
 
     }catch(error){
@@ -27,15 +45,15 @@ const getUserById= async (req:Request,res:Response,  next :NextFunction)=>{
         const user = await prisma.user.findUnique({where:{id:id as string},omit:{password:true}});
 
         if(!user){
-            return res.status(404).json({success:false,message:"unauthorize request"});
+            return res.status(404).json({success:false,message:"user not found"});
         }
 
-        res.status(201).json({success:true, message:"user found",data:user});
+        res.status(200).json({success:true, message:"user found",data:user});
 
     }catch(error){
         const errorMessage = error as Error;
         console.log("get user by id error", errorMessage.message);
-        res.status(500).json({success:false , message:"Internal server error"});
+        res.status(500).json({success:false , message:errorMessage.message});
 
     }
 }

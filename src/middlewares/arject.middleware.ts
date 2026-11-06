@@ -20,7 +20,7 @@ const arcjetMiddleware = async(req:Request,res:Response,next:NextFunction)=>{
     }catch(error){
         const errorMessage = error as Error;
         console.error("Arject error",errorMessage);
-        res.status(500).json({success:false,message:"Internal Server Error"})
+        res.status(500).json({success:false,message:errorMessage.message})
     }
 
 }
